@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Mini App Telegram Shop</title>
+<style>
+body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+.item { display: inline-block; margin: 20px; }
+img { width: 150px; height: 150px; border: 1px solid #ccc; border-radius: 10px; }
+button { display: block; margin-top: 10px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
+#status { margin-top: 30px; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>Магазин картинок</h1>
+
+<div class="item">
+    <img src="https://via.placeholder.com/150?text=Картинка+1" alt="Картинка 1">
+    <button class="buyBtn" data-title="Картинка 1" data-price="2000">Купить за 2000 Stars</button>
+</div>
+
+<div class="item">
+    <img src="https://via.placeholder.com/150?text=Картинка+2" alt="Картинка 2">
+    <button class="buyBtn" data-title="Картинка 2" data-price="1500">Купить за 1500 Stars</button>
+</div>
+
+<div id="status"></div>
+
+<script>
+// Инициализация Telegram Web App
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+const statusDiv = document.getElementById("status");
+
+// Все кнопки покупки
+const buttons = document.querySelectorAll(".buyBtn");
+
+buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const title = btn.getAttribute("data-title");
+        const price = parseInt(btn.getAttribute("data-price"));
+
+        // Создаём invoice для Telegram Web App
+        const invoice = {
+            title: title,
+            description: `Покупка ${title}`,
+            payload: `payload_${title.replace(/\s+/g,"_")}`,
+            currency: "XTR",
+            prices: [{ label: title, amount: price }],
+            provider_token: "", // для цифровых товаров можно пустым
+        };
+
+        // Открываем встроенный экран оплаты прямо внутри Web App
+        tg.openInvoice(invoice);
+    });
+});
+
+// После успешной оплаты
+tg.onEvent("payment_successful", (payment) => {
+    statusDiv.innerText = `✅ Оплата прошла! Вы купили ${payment.total_amount/100} Stars. Контент доступен ниже.`;
+    // Можно сразу показать купленную картинку или скрытый контент
+});
+</script>
+
+</body>
+</html>
