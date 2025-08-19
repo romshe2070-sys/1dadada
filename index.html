@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Gifts — minimal UI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #141414;
+      --card: #282727;
+      --pill: #474747;
+      --text: #ffffff;
+      --muted: #a1a1a8;
+      --pill-green: #45ff6d;
+      --pill-red: #ff4945;
+      --star-img: url('star.png');
+    }
+    * { box-sizing: border-box }
+    body {
+      background: var(--bg);
+      font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .panel {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: .3px;
+    }
+    .found { background: var(--pill-green); color: var(--text); }
+    .notfound { background: var(--pill-red); color: var(--text); }
+
+    #gift-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .gift {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform .15s ease;
+    }
+    .gift:hover { transform: translateY(-1px); }
+
+    .left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .emoji-badge {
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      background: var(--pill);
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .gid {
+      font-size: 13px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .price-pill {
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: var(--pill);
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--text);
+      flex-shrink: 0;
+      min-width: 48px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .price-pill img {
+      width: 24px;
+      height: 24px;
+    }
+    .time {
+      font-size: 12px;
+      color: var(--muted);
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="panel">
+      <div id="status-pill" class="status-pill notfound">not found</div>
+      <div class="time" id="status-time">--:--:-- (UTC+5)</div>
+    </div>
+
+    <div id="gift-list"></div>
+  </div>
+
+  <script>
+    const TOKEN = "8351765151:AAGCokDCBin_1UXIZZgVLadlkY3UIIBDxVo";
+    const GIFTS_URL = `https://api.telegram.org/bot${TOKEN}/getAvailableGifts`;
+
+    let oldGiftIds = new Set();
+    let firstLoad = true;
+    let timer = null;
+
+    function timeInUTCPlus5(){
+      const now = new Date();
+      const utc = now.getTime() + now.getTimezoneOffset()*60000;
+      const tz = new Date(utc + 5*3600000);
+      return tz.toLocaleTimeString("ru-RU", {hour12:false});
+    }
+
+    async function loadGifts(){
+      try{
+        const res = await fetch(GIFTS_URL);
+        const data = await res.json();
+        const gifts = (data && data.result && data.result.gifts) ? data.result.gifts : [];
+
+        const list = document.getElementById("gift-list");
+        const pill = document.getElementById("status-pill");
+        const time = document.getElementById("status-time");
+
+        list.innerHTML = "";
+        const newIds = new Set(gifts.map(g => g.id));
+        const diff = [...newIds].filter(x => !oldGiftIds.has(x));
+
+        time.textContent = timeInUTCPlus5() + " (UTC+5)";
+        if (oldGiftIds.size === 0){
+          pill.textContent = "loaded";
+          pill.className = "status-pill found";
+        } else if (diff.length > 0){
+          pill.textContent = "found";
+          pill.className = "status-pill found";
+        } else {
+          pill.textContent = "not found";
+          pill.className = "status-pill notfound";
+        }
+
+        gifts.forEach(g => {
+          const item = document.createElement("div");
+          item.className = "gift";
+          item.innerHTML = `
+            <div class="left">
+              <div class="emoji-badge">${g.sticker.emoji}</div>
+              <div class="gid">ID: ${g.id}</div>
+            </div>
+            <div class="price-pill"><img src="star.png" alt="star">${g.star_count}</div>
+          `;
+          list.appendChild(item);
+        });
+
+        oldGiftIds = newIds;
+      }catch(e){
+        console.error("Ошибка загрузки:", e);
+      }
+    }
+
+    loadGifts();
+    timer = setInterval(loadGifts, 1000);
+  </script>
+</body>
+</html>
