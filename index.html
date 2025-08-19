@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gifts — minimal UI</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
   <style>
@@ -13,9 +14,9 @@
       --muted: #a1a1a8;
       --pill-green: #45ff6d;
       --pill-red: #ff4945;
+      --star-img: url('star.png');
     }
-
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box }
     body {
       background: var(--bg);
       font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -25,32 +26,26 @@
       display: flex;
       justify-content: center;
     }
-
     .container {
-      width: 100%;
-      max-width: 420px;
+      width: 350px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      padding: 0 12px;
+      gap: 12px;
     }
-
     .panel {
       background: var(--card);
       border-radius: 16px;
-      padding: 12px 14px;
+      padding: 10px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 15px;
     }
-
     .status-pill {
-      padding: 6px 12px;
+      padding: 4px 10px;
       border-radius: 999px;
       font-weight: 600;
       text-transform: uppercase;
-      font-size: 13px;
+      font-size: 12px;
       letter-spacing: .3px;
     }
     .found { background: var(--pill-green); color: var(--text); }
@@ -59,103 +54,63 @@
     #gift-list {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
-
     .gift {
       background: var(--card);
       border-radius: 16px;
-      padding: 12px 14px;
+      padding: 10px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       transition: transform .15s ease;
     }
-    .gift:hover { transform: translateY(-2px); }
+    .gift:hover { transform: translateY(-1px); }
 
     .left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       min-width: 0;
     }
-
     .emoji-badge {
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px;
       background: var(--pill);
-      font-size: 24px;
+      font-size: 20px;
       flex-shrink: 0;
     }
-
     .gid {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      min-width: 0;
     }
-
     .price-pill {
-      padding: 8px 12px;
-      border-radius: 12px;
+      padding: 6px 10px;
+      border-radius: 10px;
       background: var(--pill);
       font-weight: 700;
-      font-size: 14px;
+      font-size: 12px;
       color: var(--text);
+      flex-shrink: 0;
+      min-width: 48px;
+      text-align: center;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      flex-shrink: 0;
-      min-width: 50px;
     }
     .price-pill img {
       width: 24px;
       height: 24px;
     }
-
     .time {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
       user-select: none;
-    }
-
-    /* Адаптив для маленьких экранов */
-    @media (max-width: 380px) {
-      .container {
-        padding: 0 8px;
-      }
-      .panel {
-        padding: 10px 12px;
-        font-size: 14px;
-      }
-      .status-pill { font-size: 12px; padding: 5px 10px; }
-      .gift {
-        padding: 10px 12px;
-      }
-      .emoji-badge {
-        width: 36px;
-        height: 36px;
-        font-size: 20px;
-      }
-      .gid { font-size: 13px; }
-      .price-pill {
-        font-size: 13px;
-        padding: 6px 10px;
-        gap: 4px;
-        min-width: 45px;
-      }
-      .price-pill img {
-        width: 20px;
-        height: 20px;
-      }
-      .time { font-size: 12px; }
     }
   </style>
 </head>
@@ -174,6 +129,8 @@
     const GIFTS_URL = `https://api.telegram.org/bot${TOKEN}/getAvailableGifts`;
 
     let oldGiftIds = new Set();
+    let firstLoad = true;
+    let timer = null;
 
     function timeInUTCPlus5(){
       const now = new Date();
@@ -228,7 +185,7 @@
     }
 
     loadGifts();
-    setInterval(loadGifts, 1000);
+    timer = setInterval(loadGifts, 1000);
   </script>
 </body>
 </html>
